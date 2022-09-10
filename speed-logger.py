@@ -97,11 +97,19 @@ def test_speed():
 def get_prog_args():
     parser = argparse.ArgumentParser(description='Start a speedtest or show results on localhost website')
 
+    
+
     subparsers = parser.add_subparsers(help='sub-commands', dest='sub')
     subparsers.add_parser('start-test', help='Starts a single speedtest')
     subparsers.add_parser('start-server', help='Starts a server on localhost that show the results')
     subparsers.add_parser('show-all', help='Shows all recorded speed tests')
     subparsers.add_parser('create-db', help='Create a SQLite Database and add necessary tables to it')
+
+    client_parser = subparsers.add_parser('client-details', help='Shows Client Details for a given Test by ID')
+    client_parser.add_argument('id', type=int, help='Test ID to get client details from')
+    server_parser = subparsers.add_parser('server-details', help='Shows Server Details for a given Test by ID')
+    server_parser.add_argument('id', type=int, help='Test ID to get server details from')
+
 
     return parser.parse_args()
 
@@ -193,9 +201,17 @@ def main():
             for m in measurements:
                 datetime_utc_offset = m.added_at + m.added_at.astimezone().utcoffset()
                 print(f'{m.id} |', f'{datetime_utc_offset} |', f'download: {round(m.download/1000000, 2)} mbit/s |', f'upload: {round(m.upload/1000000, 2)} mbit/s |', f'ping: {m.ping}')
+    elif args.sub == 'client-details':
+        with SessionLocal() as db:
+            sm = db.query(MeasureStat).filter_by(id=args.id).first()
+            print(f'mb sent: {sm.bytes_sent/1000000} |', f'mb received: {sm.bytes_received/1000000} |', f'client ip: {sm.client.ip} |',  f'lat: {sm.client.lat} |', f'lon: {sm.client.lon} |',f'client isp: {sm.client.isp} |', f'country: {sm.client.country}')
+    elif args.sub == 'server-details':
+        with SessionLocal() as db:
+            sm = db.query(MeasureStat).filter_by(id=args.id).first()
+            print(f'lat: {sm.server.lat} |', f'lon: {sm.server.lon} |', f'city: {sm.server.name} |', f'country: {sm.server.country} |', f'cc: {sm.server.cc} |', f'sponsor: {sm.server.sponsor} |', f'server id: {sm.server.server_id} |', f'host: {sm.server.host} |', f'distance: {round(sm.server.d, 1)} km')
     elif args.sub == 'start-server':
         print('The server will start here')
-
+    
 
 if __name__ == '__main__':
     main()
