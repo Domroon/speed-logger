@@ -5,15 +5,9 @@
     pip install speedtest-cli sqlalchemy
     
 ## Usage
-1. Create database
-
-
+### 1. Create database
     python speed-logger.py create-db
-    
-    
-2. Start a test
-
-
+### 2. Start a test
     python speed-logger.py start-test
     
 Then you can get various information about your measurement
